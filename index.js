@@ -34,7 +34,7 @@ const exerciseSchema = new Schema({
   userId: { type: String, required: true },
   description: { type: String, required: true },
   duration: { type: Number, required: true },
-  date: { type: String, required: true }
+  date: { type: Date, required: true }
 });
 
 Exercise = mongoose.model('Exercise', exerciseSchema);
@@ -75,9 +75,9 @@ app.post('/api/users/:_id/exercises', async (req, res) => {
     const exerciseDate = date ? new Date(date) : new Date();
     const newExercise = new Exercise({
       userId: _id,
-      description,
+      description: description,
       duration: parseInt(duration),
-      date: exerciseDate.toDateString()
+      date: exerciseDate
     });
 
     const savedExercise = await newExercise.save();
@@ -85,7 +85,7 @@ app.post('/api/users/:_id/exercises', async (req, res) => {
       username: user.username,
       description: savedExercise.description,
       duration: savedExercise.duration,
-      date: savedExercise.date,
+      date: savedExercise.date.toDateString(),
       _id: user._id
     });
   } catch (err) {
@@ -106,10 +106,10 @@ app.get('/api/users/:_id/logs', async (req, res) => {
 
     let query = { userId: _id };
     if (from) {
-      query.date = { ...query.date, $gte: new Date(from).toDateString() };
+      query.date = { ...query.date, $gte: new Date(from) };
     }
     if (to) {
-      query.date = { ...query.date, $lte: new Date(to).toDateString() };
+      query.date = { ...query.date, $lte: new Date(to) };
     }
 
     const exercises = await Exercise.find(query)
@@ -123,7 +123,7 @@ app.get('/api/users/:_id/logs', async (req, res) => {
       log: exercises.map(ex => ({
         description: ex.description,
         duration: ex.duration,
-        date: ex.date
+        date: ex.date.toDateString()
       }))
     });
   } catch (err) {
